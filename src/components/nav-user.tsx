@@ -1,5 +1,5 @@
 "use client"
-import { useAuth  } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 
 import {
@@ -8,12 +8,12 @@ import {
   IconLogout,
   IconNotification,
   IconUserCircle,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 
 import {
   Avatar,
   AvatarFallback,
-} from "@/components/ui/avatar"
+} from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,34 +22,48 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+
+// Simple spinner component
+function Spinner() {
+  return (
+    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-600"></div>
+  );
+}
 
 export function NavUser({
   user,
 }: {
   user: {
-    email: string
-    name: string
-    avatar: string
-  }
+    email: string;
+    name: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   const { signOut, getCurrentUser } = useAuth();
 
   const [userData, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchUser() {
-      const currentUser = await getCurrentUser();
-      console.log('Current user:', currentUser);
-      setUser(currentUser);
+      try {
+        const currentUser = await getCurrentUser();
+        console.log('Current user:', currentUser);
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchUser();
   }, [getCurrentUser]);
@@ -77,10 +91,19 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{userData.id}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {userData.email}
-                </span>
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner />
+                    <span>Loading user...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span className="truncate font-medium">{userData?.id || 'Unknown User'}</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {userData?.email || 'No email'}
+                    </span>
+                  </>
+                )}
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -98,9 +121,9 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{userData.id}</span>
+                  <span className="truncate font-medium">{userData?.id || 'Unknown User'}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {userData.email}
+                    {userData?.email || 'No email'}
                   </span>
                 </div>
               </div>
@@ -129,5 +152,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

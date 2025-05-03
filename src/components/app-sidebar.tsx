@@ -1,5 +1,4 @@
-import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState } from 'react';
+"use client"
 import logo from "@/assets/logo.png"
 import {
   IconCamera,
@@ -18,7 +17,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
+
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -45,8 +44,8 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "Product",
+      url: "/product",
       icon: IconListDetails,
     },
     {
