@@ -1,4 +1,6 @@
-import { useAuth } from '@/context/AuthContext';
+"use client"
+import { useAuth  } from '@/context/AuthContext';
+import { useEffect, useState } from 'react';
 
 import {
   IconCreditCard,
@@ -39,7 +41,18 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
-  const { signOut } = useAuth();
+  const { signOut, getCurrentUser } = useAuth();
+
+  const [userData, setUser] = useState<any | null>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const currentUser = await getCurrentUser();
+      console.log('Current user:', currentUser);
+      setUser(currentUser);
+    }
+    fetchUser();
+  }, [getCurrentUser]);
 
   const handleSignOut = async () => {
     try {
@@ -54,7 +67,7 @@ export function NavUser({
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger className='w-full'>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -64,9 +77,9 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{userData.id}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {userData.email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -85,9 +98,9 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{userData.id}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {userData.email}
                   </span>
                 </div>
               </div>
