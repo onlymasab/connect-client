@@ -1,4 +1,5 @@
 import logo from "@/assets/logo.png"
+import authcover from "@/assets/auth-cover.png"
 
 import { LoginForm } from "@/components/login-form"
 
@@ -20,9 +21,13 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block">
-        
-      </div>
+      <div className="relative bg-muted h-full overflow-hidden lg:block">
+      <img
+        src={authcover}
+        alt="cover"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+    </div>
     </div>
   )
 }

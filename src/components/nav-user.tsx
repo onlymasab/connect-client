@@ -48,6 +48,8 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
 
+  console.log(user)
+
   const { signOut, getCurrentUser } = useAuth();
 
   const [userData, setUser] = useState<any | null>(null);

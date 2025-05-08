@@ -1,0 +1,53 @@
+[
+    {
+      "sku": "PCT-1001",
+      "name": "Precast Concrete Slab 200x100x15 cm",
+      "category": "Slabs",
+      "dimensions": {
+        "length_cm": 200,
+        "width_cm": 100,
+        "thickness_cm": 15
+      },
+      "weight_kg": 500,
+      "material": "Reinforced Concrete",
+      "finish": "Smooth",
+      "price_usd": 120.00,
+      "stock_quantity": 50,
+      "manufacturer": "ABC Precast Ltd.",
+      "description": "Heavy-duty precast slab suitable for industrial flooring."
+    },
+    {
+      "sku": "PCT-2005",
+      "name": "Precast Wall Panel 300x120x20 cm",
+      "category": "Wall Panels",
+      "dimensions": {
+        "length_cm": 300,
+        "width_cm": 120,
+        "thickness_cm": 20
+      },
+      "weight_kg": 800,
+      "material": "Fiber-Reinforced Concrete",
+      "finish": "Textured",
+      "price_usd": 220.00,
+      "stock_quantity": 30,
+      "manufacturer": "ABC Precast Ltd.",
+      "description": "Durable wall panel for commercial and residential use."
+    },
+    {
+      "sku": "PCT-3007",
+      "name": "Precast Stair Tread 100x30x5 cm",
+      "category": "Stair Treads",
+      "dimensions": {
+        "length_cm": 100,
+        "width_cm": 30,
+        "thickness_cm": 5
+      },
+      "weight_kg": 50,
+      "material": "Concrete",
+      "finish": "Anti-slip",
+      "price_usd": 35.00,
+      "stock_quantity": 120,
+      "manufacturer": "ABC Precast Ltd.",
+      "description": "Slip-resistant stair tread for outdoor use."
+    }
+  ]
