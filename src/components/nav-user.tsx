@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 
@@ -13,6 +13,7 @@ import {
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -37,30 +38,19 @@ function Spinner() {
   );
 }
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    email: string;
-    name: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
+  const { signOut, fetchProfile } = useAuth();
 
-  console.log(user)
-
-  const { signOut, getCurrentUser } = useAuth();
-
-  const [userData, setUser] = useState<any | null>(null);
+  const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const currentUser = await getCurrentUser();
+        const currentUser = await fetchProfile();
         console.log('Current user:', currentUser);
-        setUser(currentUser);
+        setUserData(currentUser);
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -68,7 +58,7 @@ export function NavUser({
       }
     }
     fetchUser();
-  }, [getCurrentUser]);
+  }, [fetchProfile]);
 
   const handleSignOut = async () => {
     try {
@@ -89,8 +79,11 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                {/* <AvatarImage src={user.avatar} alt={user.id} /> */}
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                {userData?.avatar_url ? (
+                  <AvatarImage src={userData.avatar_url} alt={userData.email} />
+                ) : (
+                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                )}
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 {loading ? (
@@ -100,9 +93,9 @@ export function NavUser({
                   </div>
                 ) : (
                   <>
-                    <span className="truncate font-medium">{userData?.id || 'Unknown User'}</span>
+                    <span className="truncate font-medium">{userData?.email || 'Unknown User'}</span>
                     <span className="text-muted-foreground truncate text-xs">
-                      {userData?.email || 'No email'}
+                      {userData?.id || 'No ID'}
                     </span>
                   </>
                 )}
@@ -119,13 +112,16 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  {userData?.avatar_url ? (
+                    <AvatarImage src={userData.avatar_url} alt={userData.email} />
+                  ) : (
+                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{userData?.id || 'Unknown User'}</span>
+                  <span className="truncate font-medium">{userData?.email || 'Unknown User'}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {userData?.email || 'No email'}
+                    {userData?.id || 'No ID'}
                   </span>
                 </div>
               </div>
