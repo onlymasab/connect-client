@@ -435,7 +435,7 @@ export function DataTable({
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
                 <span className="hidden lg:inline">Customize Columns</span>

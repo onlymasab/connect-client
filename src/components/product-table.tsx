@@ -31,8 +31,6 @@ import {
   IconLoader,
   IconPlus,
   IconTrendingUp,
-  IconCircleDashedCheck,
-  IconX
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -51,7 +49,7 @@ import {
 } from "@tanstack/react-table"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
-import { Schema, z } from "zod"
+import { z } from "zod"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
@@ -106,9 +104,20 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { ProductModel } from "@/models/ProductModel"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { useForm } from "react-hook-form"
 
-export const schema = z.object({
-  skuId: z.string(),
+// ====== Schema + Type ======
+const schema = z.object({
+  sku_id: z.string(),
   name: z.string(),
   category: z.string(),
   type: z.string(),
@@ -116,168 +125,22 @@ export const schema = z.object({
   weight: z.number(),
   material: z.string(),
   strength: z.string(),
-  isActive: z.boolean(),
-  isDeprecated: z.boolean(),
-  createdAt: z.string(), // Assuming createdAt is a string (e.g., ISO date)
-  updatedAt: z.string(), // Assuming updatedAt is a string (e.g., ISO date)
-});
+  is_active: z.boolean(),
+  is_deprecated: z.boolean(),
+  created_at: z.string().regex(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/,
+    'Invalid ISO timestamp format for createdAt'
+  ),
+  updated_at: z.string().regex(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/,
+    'Invalid ISO timestamp format for updatedAt'
+  ),
+})
 
-
-
-
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: string }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  });
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
-
-export const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "skuId",
-    header: "SKU",
-    cell: ({ row }) => <div>{row.original.skuId}</div>,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => <TableCellViewer item={row.original} />,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "category",
-    header: "Category",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground">
-        {row.original.category}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }) => (
-      <Badge variant="secondary" className="text-muted-foreground">
-        {row.original.type}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "material",
-    header: "Material",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="capitalize">
-        {row.original.material}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "strength",
-    header: "Strength",
-    cell: ({ row }) => (
-      <div className="text-right">{row.original.strength}</div>
-    ),
-  },
-  {
-    accessorKey: "dimensions",
-    header: "Dimensions",
-    cell: ({ row }) => (
-      <div className="text-xs text-muted-foreground">{row.original.dimensions}</div>
-    ),
-  },
-  {
-    accessorKey: "weight",
-    header: "Weight (kg)",
-    cell: ({ row }) => (
-      <div className="text-right">{row.original.weight.toFixed(2)}</div>
-    ),
-  },
-  {
-    accessorKey: "isActive",
-    header: "Active",
-    cell: ({ row }) =>
-      row.original.isActive ? (
-        <IconX className="text-red-500" />
-        
-      ) : (
-        <IconCircleDashedCheck className="text-green-500" />
-      ),
-  },
-  {
-    accessorKey: "isDeprecated",
-    header: "Deprecated",
-    cell: ({ row }) =>
-      row.original.isDeprecated ? (
-        <Badge variant="destructive">Deprecated</Badge>
-      ) : (
-        <Badge variant="outline">Active</Badge>
-      ),
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Duplicate</DropdownMenuItem>
-          <DropdownMenuItem>Archive</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-];
 
 function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.skuId,
+    id: row.original.sku_id,
   })
 
   return (
@@ -300,87 +163,215 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function ProductTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[]
-}) {
-  const [data, setData] = React.useState(() => initialData)
+function DragHandle({ id }: { id: string }) {
+  const { attributes, listeners } = useSortable({ id })
+
+  return (
+    <Button
+      {...attributes}
+      {...listeners}
+      variant="ghost"
+      size="icon"
+      className="text-muted-foreground size-7 hover:bg-transparent"
+    >
+      <IconGripVertical className="text-muted-foreground size-3" />
+      <span className="sr-only">Drag to reorder</span>
+    </Button>
+  )
+}
+
+export type Product = z.infer<typeof schema>
+
+const columns: ColumnDef<Product>[] = [
+  {
+    id: "drag",
+    header: () => null,
+    cell: ({ row }) => <DragHandle id={row.original.sku_id} />,
+  },
+  {
+    id: "select",
+    header: ({ table }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center object-fit w-12">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "sku_id",
+    header: "SKU ID",
+    cell: ({ row }) => <div className='w-20'>{row.original.sku_id}</div>,
+    enableHiding: false,
+  },
+  { accessorKey: 'name', header: 'Name',
+    cell: ({ row }) => {
+      return <TableCellViewer item={row.original} />
+    },
+    enableHiding: false,
+   },
+  { accessorKey: 'category', header: 'Category' },
+  { accessorKey: 'type', header: 'Type' },
+  { accessorKey: 'dimensions', header: 'Dimensions' },
+  { accessorKey: 'weight', header: 'Weight' },
+  { accessorKey: 'material', header: 'Material' },
+  { accessorKey: 'strength', header: 'Strength' },
+  {
+    accessorKey: 'is_active',
+    header: 'Active',
+    cell: info => (info.getValue() ? 'Yes' : 'No'),
+  },
+  {
+    accessorKey: 'is_deprecated',
+    header: 'Deprecated',
+    cell: info => (info.getValue() ? 'Yes' : 'No'),
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Created At',
+    cell: info => new Date(info.getValue() as string).toLocaleString(),
+  },
+  {
+    accessorKey: 'updated_at',
+    header: 'Updated At',
+    cell: info => <div className="w-56">{new Date(info.getValue() as string).toLocaleString()}</div>,
+  },
+  {
+      id: "actions",
+      cell: () => (
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+]
+
+type ProductTableProps = {
+  data: Product[]
+}
+
+export function ProductTable({ data }: ProductTableProps) {
+  const [initialData, setData] = React.useState(() => data)
   const [rowSelection, setRowSelection] = React.useState({})
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  })
-  const sortableId = React.useId()
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ skuId }) => skuId) || [],
-    [data]
-  )
+      () => data?.map(({ sku_id }) => sku_id) || [],
+      [data]
+    )
+
+    const [columnVisibility, setColumnVisibility] =
+        React.useState<VisibilityState>({})
+      const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+        []
+      )
+      const [sorting, setSorting] = React.useState<SortingState>([])
+      const [pagination, setPagination] = React.useState({
+        pageIndex: 0,
+        pageSize: 10,
+      })
+      const sortableId = React.useId()
+      const sensors = useSensors(
+        useSensor(MouseSensor, {}),
+        useSensor(TouchSensor, {}),
+        useSensor(KeyboardSensor, {})
+      )
 
   const table = useReactTable({
     data,
     columns,
     state: {
       sorting,
+      columnFilters,
       columnVisibility,
       rowSelection,
-      columnFilters,
-      pagination,
     },
-    getRowId: (row) => {
-      if (row.skuId !== undefined && row.skuId !== null) {
-        return row.skuId.toString();
-      }
-      console.warn('Row missing skuId:', row);
-      return `row-${Math.random()}`;
-    },
+    getRowId: row => row.sku_id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-  });
+    getFilteredRowModel: getFilteredRowModel(),
+  })
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
+      const { active, over } = event
+      if (active && over && active.id !== over.id) {
+        setData((initialData) => {
+          const oldIndex = dataIds.indexOf(active.id)
+          const newIndex = dataIds.indexOf(over.id)
+          return arrayMove(initialData, oldIndex, newIndex)
+        })
+      }
     }
-  }
+
+    const [openDialog, setOpenDialog] = React.useState(false)
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<Product>()
+    const [newProduct, setNewProduct] = React.useState<Product>({
+      sku_id: "",
+      name: "",
+      category: "",
+      type: "",
+      dimensions: "",
+      weight: 0,
+      material: "",
+      strength: "",
+      is_active: true,
+      is_deprecated: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    const handleOpenAddProduct = () => {
+      const sku = getNextSkuId(data)
+      setNewProduct({ ...newProduct, sku_id: sku })
+      reset({ ...newProduct, sku_id: sku })
+      setOpenDialog(true)
+    }
 
   return (
     <Tabs
-      defaultValue="outline"
+      defaultValue="all"
       className="w-full flex-col justify-start gap-6"
     >
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        <Select defaultValue="outline">
+        <Select defaultValue="all">
           <SelectTrigger
             className="flex w-fit @4xl/main:hidden"
             size="sm"
@@ -389,21 +380,19 @@ export function ProductTable({
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="acitve">Active</SelectItem>
+            <SelectItem value="depricated">Depricated</SelectItem>
           </SelectContent>
         </Select>
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">
+            Active <Badge variant="secondary">3</Badge>
           </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
+          <TabsTrigger value="depricated">
+            Depricated <Badge variant="secondary">2</Badge>
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
@@ -439,14 +428,79 @@ export function ProductTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" onClick={handleOpenAddProduct}>
+                <IconPlus />
+                <span className="hidden lg:inline">Add Product</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Product</DialogTitle>
+                <DialogDescription>Fill all fields and click save.</DialogDescription>
+              </DialogHeader>
+              <form
+                onSubmit={handleSubmit((values) => {
+                  const now = new Date().toISOString()
+                  const finalData = { ...values, created_at: now, updated_at: now }
+                  // TODO: Add to Supabase here
+                  setData(prev => [...prev, finalData])
+                  setOpenDialog(false)
+                })}
+                className="grid gap-4 py-4"
+              >
+                <Input disabled {...register("sku_id")} />
+
+                {[
+                  { id: "name", label: "Name" },
+                  { id: "category", label: "Category" },
+                  { id: "type", label: "Type" },
+                  { id: "dimensions", label: "Dimensions" },
+                  { id: "material", label: "Material" },
+                  { id: "strength", label: "Strength" },
+                ].map(({ id, label }) => (
+                  <div key={id}>
+                    <Label htmlFor={id}>{label}</Label>
+                    <Input {...register(id as keyof Product, { required: true })} />
+                    {errors[id as keyof Product] && (
+                      <p className="text-red-500 text-xs">Required</p>
+                    )}
+                  </div>
+                ))}
+
+                <div>
+                  <Label htmlFor="weight">Weight</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...register("weight", { valueAsNumber: true, required: true })}
+                  />
+                  {errors.weight && <p className="text-red-500 text-xs">Must be a number</p>}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <Checkbox {...register("is_active")} />
+                    Active
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <Checkbox {...register("is_deprecated")} />
+                    Deprecated
+                  </label>
+                </div>
+
+                <DialogFooter>
+                  <Button type="submit">Save Product</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
+
       <TabsContent
-        value="outline"
+        value="all"
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
@@ -578,94 +632,139 @@ export function ProductTable({
           </div>
         </div>
       </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+
     </Tabs>
   )
 }
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig
 
-export function TableCellViewer({ item }: { item: ProductModel }) {
-  const isMobile = useIsMobile();
+function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+  const isMobile = useIsMobile()
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
-        <Button variant="link" className="text-foreground w-fit px-0 text-left truncate max-w-[150px]">
+        <Button variant="link" className="text-foreground w-fit px-0 text-left">
           {item.name}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
           <DrawerTitle>{item.name}</DrawerTitle>
-          <DrawerDescription>Product Details</DrawerDescription>
+          <DrawerDescription>
+            Showing product details from schema
+          </DrawerDescription>
         </DrawerHeader>
 
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm max-h-[60vh]">
+        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           <form className="flex flex-col gap-4">
-            {/* SKU ID */}
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="skuId">SKU ID</Label>
-              <Input id="skuId" defaultValue={item.skuId} />
-            </div>
-
-            {/* Category & Type */}
+            {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="category">Category</Label>
-                <Input id="category" defaultValue={item.category} />
+                <Label htmlFor="sku_id">SKU ID</Label>
+                <Input id="sku_id" defaultValue={item.sku_id} disabled />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
-                <Input id="type" defaultValue={item.type} />
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" defaultValue={item.name} />
               </div>
             </div>
 
-            {/* Dimensions & Weight */}
+            <div className="grid grid-cols-2 gap-4">
+            {/* Type Dropdown */}
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="type">Type</Label>
+              <Select defaultValue={item.type}>
+                <SelectTrigger id="type" className="w-full">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "Rectangular",
+                    "Square",
+                    "Round",
+                    "Square Slab",
+                    "T Beam",
+                    "I Beam",
+                    "L Beam",
+                    "Precast Column",
+                    "Precast Wall Panel",
+                    "Precast Staircase",
+                    "Precast Lintel",
+                    "Precast Footing",
+                    "Double Tee Slab",
+                    "Hollow Core Slab",
+                    "Solid Slab",
+                    "U Drain",
+                    "Box Culvert",
+                    "Manhole",
+                    "Boundary Wall Panel",
+                    "Retaining Wall",
+                    "Precast Pile",
+                    "Precast Bridge Girder",
+                    "Precast Parapet",
+                    "Precast Kerb Stone",
+                    "Precast Gully",
+                    "Precast Bollard",
+                    "Precast Pipe",
+                    "Precast Road Barrier"
+                  ].map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="category">Category</Label>
+              <Select defaultValue={item.category}>
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "Slab",
+                    "Beam",
+                    "Column",
+                    "Wall Panel",
+                    "Staircase",
+                    "Foundations",
+                    "Drainage",
+                    "Bridges",
+                    "Utilities",
+                    "Barriers",
+                    "Miscellaneous"
+                  ].map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+            {/* Specs */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="dimensions">Dimensions</Label>
                 <Input id="dimensions" defaultValue={item.dimensions} />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="weight">Weight (kg)</Label>
-                <Input id="weight" defaultValue={item.weight.toString()} type="number" />
+                <Label htmlFor="weight">Weight</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  defaultValue={item.weight}
+                  step="0.01"
+                />
               </div>
             </div>
 
-            {/* Material & Strength */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="material">Material</Label>
@@ -677,43 +776,62 @@ export function TableCellViewer({ item }: { item: ProductModel }) {
               </div>
             </div>
 
-            {/* Is Active */}
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="isActive">Is Active</Label>
-              <Select defaultValue={item.isActive ? "true" : "false"}>
-                <SelectTrigger id="isActive" className="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Toggles */}
+            <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  defaultChecked={item.is_active}
+                />
+                <Label htmlFor="is_active">Active</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_deprecated"
+                  defaultChecked={item.is_deprecated}
+                />
+                <Label htmlFor="is_deprecated">Deprecated</Label>
+              </div>
             </div>
 
-            {/* Is Deprecated */}
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="isDeprecated">Is Deprecated</Label>
-              <Select defaultValue={item.isDeprecated ? "true" : "false"}>
-                <SelectTrigger id="isDeprecated" className="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Deprecated</SelectItem>
-                  <SelectItem value="false">Current</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Timestamps (Read-only) */}
+            <div className="grid grid-cols-2 gap-4 text-muted-foreground text-xs">
+              <div>
+                <Label>Created At</Label>
+                <div>{item.created_at}</div>
+              </div>
+              <div>
+                <Label>Updated At</Label>
+                <div>{item.updated_at}</div>
+              </div>
             </div>
           </form>
         </div>
 
         <DrawerFooter>
-          <Button type="submit">Save Changes</Button>
+          <Button>Submit</Button>
           <DrawerClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">Done</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  );
+  )
+}
+
+
+
+
+function getNextSkuId(products: Product[]) {
+  if (!products || products.length === 0) return 'SKU001'
+
+  const maxId = products
+    .map((p) => Number(p.sku_id.replace('SKU', '')))
+    .filter((n) => !isNaN(n))
+    .sort((a, b) => b - a)[0]
+
+  const nextNumber = maxId + 1
+  return `SKU${String(nextNumber).padStart(3, '0')}` // e.g. SKU010
 }
