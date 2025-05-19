@@ -114,6 +114,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useForm } from "react-hook-form"
+import { ArrowUpDown } from "lucide-react"
+import { AddProductDialog } from "./product-dialog"
+import { supabase } from "@/lib/supabase/client"
 
 // ====== Schema + Type ======
 const schema = z.object({
@@ -125,8 +128,8 @@ const schema = z.object({
   weight: z.number(),
   material: z.string(),
   strength: z.string(),
-  is_active: z.boolean(),
-  is_deprecated: z.boolean(),
+  is_active: z.boolean().optional(),
+  is_deprecated: z.boolean().optional(),
   created_at: z.string().regex(
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/,
     'Invalid ISO timestamp format for createdAt'
@@ -216,7 +219,15 @@ const columns: ColumnDef<Product>[] = [
   },
   {
     accessorKey: "sku_id",
-    header: "SKU ID",
+    header: ({ column }) =>
+      <Button
+          className="text-[#637381] !px-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          SKU ID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+  ,
     cell: ({ row }) => <div className='w-20'>{row.original.sku_id}</div>,
     enableHiding: false,
   },
@@ -285,8 +296,8 @@ export function ProductTable({ data }: ProductTableProps) {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-      () => data?.map(({ sku_id }) => sku_id) || [],
-      [data]
+      () => initialData?.map(({ sku_id }) => sku_id) || [],
+      [initialData]
     )
 
     const [columnVisibility, setColumnVisibility] =
@@ -355,11 +366,21 @@ export function ProductTable({ data }: ProductTableProps) {
       updated_at: new Date().toISOString(),
     });
 
-    const handleOpenAddProduct = () => {
-      const sku = getNextSkuId(data)
-      setNewProduct({ ...newProduct, sku_id: sku })
-      reset({ ...newProduct, sku_id: sku })
-      setOpenDialog(true)
+    
+
+    const addProduct = async (product: Product) => {
+      const { data: inserted, error } = await supabase
+        .from("products")
+        .insert(product)
+        .select()
+        .single()
+    
+      if (error) {
+        console.error("Error adding product", error)
+        return
+      }
+    
+      setData(prev => [...prev, inserted])
     }
 
   return (
@@ -428,74 +449,14 @@ export function ProductTable({ data }: ProductTableProps) {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" onClick={handleOpenAddProduct}>
-                <IconPlus />
-                <span className="hidden lg:inline">Add Product</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Product</DialogTitle>
-                <DialogDescription>Fill all fields and click save.</DialogDescription>
-              </DialogHeader>
-              <form
-                onSubmit={handleSubmit((values) => {
-                  const now = new Date().toISOString()
-                  const finalData = { ...values, created_at: now, updated_at: now }
-                  // TODO: Add to Supabase here
-                  setData(prev => [...prev, finalData])
-                  setOpenDialog(false)
-                })}
-                className="grid gap-4 py-4"
-              >
-                <Input disabled {...register("sku_id")} />
-
-                {[
-                  { id: "name", label: "Name" },
-                  { id: "category", label: "Category" },
-                  { id: "type", label: "Type" },
-                  { id: "dimensions", label: "Dimensions" },
-                  { id: "material", label: "Material" },
-                  { id: "strength", label: "Strength" },
-                ].map(({ id, label }) => (
-                  <div key={id}>
-                    <Label htmlFor={id}>{label}</Label>
-                    <Input {...register(id as keyof Product, { required: true })} />
-                    {errors[id as keyof Product] && (
-                      <p className="text-red-500 text-xs">Required</p>
-                    )}
-                  </div>
-                ))}
-
-                <div>
-                  <Label htmlFor="weight">Weight</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...register("weight", { valueAsNumber: true, required: true })}
-                  />
-                  {errors.weight && <p className="text-red-500 text-xs">Must be a number</p>}
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2">
-                    <Checkbox {...register("is_active")} />
-                    Active
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Checkbox {...register("is_deprecated")} />
-                    Deprecated
-                  </label>
-                </div>
-
-                <DialogFooter>
-                  <Button type="submit">Save Product</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <AddProductDialog
+            onAdd={addProduct}
+            data={initialData.map(product => ({
+              ...product,
+              is_active: product.is_active ?? false,
+              is_deprecated: product.is_deprecated ?? false,
+            }))}
+          />
         </div>
       </div>
 
@@ -835,3 +796,5 @@ function getNextSkuId(products: Product[]) {
   const nextNumber = maxId + 1
   return `SKU${String(nextNumber).padStart(3, '0')}` // e.g. SKU010
 }
+
+
