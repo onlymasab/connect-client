@@ -6,25 +6,26 @@ import { useProductStore } from "@/stores/product";
 import { useEffect } from "react";
 
 
+export default function ProductsPage() {
+  const { products, fetchProducts, subscribeToRealtime, unsubscribeFromRealtime } = useProductStore();
 
-
-
-
-export default function ProductionPage() {
-    const { products, fetchProducts } = useProductStore();
-    
-      useEffect(() => {
-        fetchProducts();
-      }, []);
-    return (
-        <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <SectionCards />
-                <div className="px-4 lg:px-6">
-                    <ChartAreaInteractive />
-                </div>
-                <ProductTable data={products as ProductModel[]} />
-              </div>
+  useEffect(() => {
+    fetchProducts();
+    subscribeToRealtime();
+    return () => {
+      unsubscribeFromRealtime();
+    };
+  }, [fetchProducts, subscribeToRealtime, unsubscribeFromRealtime]);
+  return (
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <SectionCards />
+        <div className="px-4 lg:px-6">
+          <ChartAreaInteractive />
         </div>
-    );
+      
+        <ProductTable data={products as ProductModel[]} />
+      </div>
+    </div>
+  );
 }
