@@ -1,53 +1,72 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase/client";
-import { productSchema, Product } from "@/schema/product"; // Adjust path as needed
+import { ProductSchema } from "@/schema/DataSchema"; // Adjust path as needed
+import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
+import z from "zod";
+import { ProductModel } from "@/models/DataModel";
+import { toast } from "sonner";
+
 
 interface ProductStore {
-  products: Product[];
+  products: ProductModel[];
   loading: boolean;
   error: string | null;
   fetchProducts: () => Promise<void>;
-  addProduct: (product: Product) => Promise<void>;
-  updateProduct: (sku_id: string, product: Partial<Product>) => Promise<void>; // New method
+  addProduct: (product: ProductModel) => Promise<void>;
+  updateProduct: (sku_id: string, product: Partial<ProductModel>) => Promise<void>; // New method
   subscribeToRealtime: () => void;
   unsubscribeFromRealtime: () => void;
   retryFetch: () => void;
-  retryAdd: (product: Product) => void;
+  retryAdd: (product: ProductModel) => void;
 }
 
-import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
-import z from "zod";
+
 
 let subscription: RealtimeChannel | null = null;
+let hasFetched = false;
 
 export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
   loading: false,
   error: null,
 
-  fetchProducts: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) throw error;
-      const validatedProducts = z.array(productSchema).parse(data);
-      set({ products: validatedProducts, loading: false });
-    } catch (error) {
-      const message = (error as PostgrestError).message || "Failed to fetch products";
-      set({ error: message, loading: false });
-      console.error("Fetch error:", error);
-    }
-  },
+ fetchProducts: async () => {
+  if (hasFetched) {
+    console.log("Already fetched, skipping...");
+    return;
+  }
+  hasFetched = true;
 
-  addProduct: async (product: Product) => {
+  set({ loading: true, error: null });
+  console.log("Fetching products...");
+
+  try {
+    const { data, error } = await supabase.from("products").select("*");
+    console.log("Supabase response:", { data, error });
+    console.log("Data fetched:", data);
+    if (error) throw error;
+
+    const validatedProducts = z.array(ProductSchema).parse(data);
+    console.log("Validated products:", validatedProducts);
+
+    set({ products: validatedProducts, loading: false });
+    console.log("Products set in store/state.");
+  } catch (error) {
+    const message = (error as PostgrestError).message || "Failed to fetch products";
+    set({ error: message, loading: false });
+    console.error("Fetch error:", error);
+  }
+},
+
+  addProduct: async (product: ProductModel) => {
     set({ loading: true, error: null });
     try {
-      productSchema.parse(product);
+      ProductSchema.parse(product);
       const { data, error } = await supabase.from("products").insert([product]).select();
       if (error) throw error;
       if (data && data[0]) {
         set((state) => ({
-          products: [...state.products, data[0] as Product],
+          products: [...state.products, data[0] as ProductModel],
           loading: false,
           error: null,
         }));
@@ -60,7 +79,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
   },
 
-  updateProduct: async (sku_id: string, product: Partial<Product>) => {
+  updateProduct: async (sku_id: string, product: Partial<ProductModel>) => {
     set({ loading: true, error: null });
     try {
       const { data, error } = await supabase
@@ -72,7 +91,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       if (data && data[0]) {
         set((state) => ({
           products: state.products.map((p) =>
-            p.sku_id === sku_id ? (data[0] as Product) : p
+            p.sku_id === sku_id ? (data[0] as ProductModel) : p
           ),
           loading: false,
           error: null,
@@ -98,17 +117,17 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           const currentProducts = get().products;
           try {
             if (payload.eventType === "INSERT" && payload.new) {
-              const newProduct = productSchema.parse(payload.new);
+              const newProduct = ProductSchema.parse(payload.new);
               set({ products: [...currentProducts, newProduct] });
             } else if (payload.eventType === "UPDATE" && payload.new) {
-              const updatedProduct = productSchema.parse(payload.new);
+              const updatedProduct = ProductSchema.parse(payload.new);
               set({
                 products: currentProducts.map((p) =>
                   p.sku_id === updatedProduct.sku_id ? updatedProduct : p
                 ),
               });
             } else if (payload.eventType === "DELETE" && payload.old) {
-              const deletedSku = productSchema.parse(payload.old).sku_id;
+              const deletedSku = ProductSchema.parse(payload.old).sku_id;
               set({
                 products: currentProducts.filter((p) => p.sku_id !== deletedSku),
               });
@@ -129,5 +148,5 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   },
 
   retryFetch: () => get().fetchProducts(),
-  retryAdd: (product: Product) => get().addProduct(product),
+  retryAdd: (product: ProductModel) => get().addProduct(product),
 }));
