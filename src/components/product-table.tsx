@@ -470,6 +470,7 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
   const sortableId = React.useId();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
   
     // Active count
@@ -605,12 +606,140 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
                 ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" className="hidden @4xl/main:flex">
+          <Button variant="outline" size="sm" className="hidden @4xl/main:flex" onClick={() => setIsDrawerOpen(true)}>
             <span className="hidden lg:inline">Add Product</span>
             <span className="lg:hidden">New</span>
           </Button>
         </div> 
       </div>
+
+      {/* Drawer for adding new product */}
+      {isDrawerOpen && (
+        <Drawer direction="right" open onOpenChange={(open) => !open && setIsDrawerOpen(false)}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Add Product</DrawerTitle>
+              <DrawerDescription>Enter product details.</DrawerDescription>
+            </DrawerHeader>
+
+            <div className="flex flex-col gap-4 px-4">
+              <form
+                className="flex flex-col gap-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const newProduct = {
+                    sku_id: generateNextSkuId(data),
+                    name: formData.get("name"),
+                    strength: formData.get("strength"),
+                    category: formData.get("category"),
+                    type: formData.get("type"),
+                    dimensions: formData.get("dimension"),
+                    weight: parseFloat((formData.get("weight") ?? "0") as string),
+                    material: formData.get("material"),
+                  };
+                  // handleAddProduct(newProduct);
+                  setIsDrawerOpen(false);
+                }}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="sku_id">SKUID</Label>
+                    <Input id="sku_id" value={generateNextSkuId(data)} disabled readOnly />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="strength">Strength</Label>
+                    <Select name="strength" defaultValue="">
+                      <SelectTrigger id="strength" className="w-full">
+                        <SelectValue placeholder="Select strength" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input id="name" name="name" defaultValue="" required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="category">Category</Label>
+                    <Select name="category" defaultValue="">
+                      <SelectTrigger id="category" className="w-full">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent align="end">
+                        {productCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="type">Type</Label>
+                    <Select name="type" defaultValue="">
+                      <SelectTrigger id="type" className="w-full">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="dimension">Dimensions</Label>
+                    <Input id="dimension" name="dimension" defaultValue="" />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="weight">Weight</Label>
+                    <Input type="number" id="weight" name="weight" min={0} step={0.01} defaultValue="" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="material">Material</Label>
+                  <Select name="material" defaultValue="">
+                    <SelectTrigger id="material" className="w-full">
+                      <SelectValue placeholder="Select material" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {productMaterials.map((material) => (
+                        <SelectItem key={material} value={material}>
+                          {material}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <DrawerFooter>
+                  <Button type="submit">Save Product</Button>
+                  <DrawerClose asChild>
+                    <Button variant="outline" type="button" onClick={() => setIsDrawerOpen(false)}>
+                      Cancel
+                    </Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </form>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* Table Content */}
       <TabsContent value={tab} className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
@@ -742,7 +871,25 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
  }
 
 
+ function generateNextSkuId(products : DataSchema["products"]): string {
+  if (!products || products.length === 0) {
+    return "SKU0001";
+  }
 
+  const lastSku = products
+    .map((p) => p.sku_id)
+    .filter((id) => /^SKU\d{4}$/.test(id)) // only match SKU format
+    .sort()
+    .pop(); // get the last one
+
+  const lastNumber = lastSku ? parseInt(lastSku.replace("SKU", ""), 10) : 0;
+  const nextNumber = lastNumber + 1;
+
+  return `SKU${nextNumber.toString().padStart(3, "0")}`;
+}
+
+
+ // TableCellViewer component for displaying product details in a drawer
  function TableCellViewer({ item }: { item: DataSchema["products"][number] }) {
   const isMobile = useIsMobile()
 
@@ -834,7 +981,7 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="weight">Weight</Label>
-                <Input id="weight" defaultValue={item.weight} />
+                <Input type="number" id="weight" defaultValue={item.weight} min={0} step={0.01} />
               </div>
             </div>
             <div className="flex flex-col gap-3">
