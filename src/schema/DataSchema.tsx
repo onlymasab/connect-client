@@ -17,7 +17,6 @@ export const ProductSchema = z.object({
   strength: z.string().min(1, "Strength is required"),
   design_file: z.string().min(1, "Design File is required"),
   is_active: z.boolean(),
-  is_deprecated: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
 });

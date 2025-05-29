@@ -1,19 +1,24 @@
 import { ProductModel } from "@/models/DataModel";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch"
+
 import { CSS } from "@dnd-kit/utilities";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { IconChevronDown, IconLayoutColumns, IconGripVertical, IconChevronsRight, IconChevronRight, IconChevronLeft, IconChevronsLeft, } from "@tabler/icons-react";
+import { IconChevronDown, IconLayoutColumns, IconGripVertical, IconChevronsRight, IconChevronRight, IconChevronLeft, IconChevronsLeft, IconDotsVertical, IconTrendingUp, } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, } from "@dnd-kit/core";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DataSchema } from "@/schema/DataSchema";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, } from "@dnd-kit/sortable";
+
+
 
 import {
   ColumnDef,
@@ -23,13 +28,23 @@ import {
   flexRender,
   getPaginationRowModel,
   SortingState,
+  getFilteredRowModel,
+  ColumnFilter,
+  ColumnFiltersColumn,
+  ColumnFiltersState,
 } from "@tanstack/react-table";
 import React from "react";
 import { ArrowUpDown } from "lucide-react";
+import { productCategories, productMaterials, productTypes } from "@/constants/productOptions";
+import { StrengthProgressBar } from "./ui/strength-progress";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Separator } from "./ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 type ProductTableProps = {
   data: ProductModel[];
+  tableMeta: TableMeta
 };
 
 // DragHandle component for reordering rows
@@ -75,6 +90,7 @@ function DraggableRow({ row }: { row: Row<ProductModel> }) {
     </TableRow>
   );
 }
+
 
 
 
@@ -138,37 +154,344 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <div className="w-56">{row.original.name}</div>,
+    cell: ({ row }) => <TableCellViewer item={row.original} />,
     enableHiding: false,
+  },{
+  accessorKey: "category", // 👈 links to row.category
+  header: "Category",
+  cell: ({ row, table }) => {
+    const originalRow = row.original as DataSchema["products"][number];
+    const currentValue = originalRow.category || ""
+
+    const handleCategoryChange = (newCategory: string) => {
+      // Update the table row or global state here
+      // For example:
+      table.getRowModel().rows.forEach((r) => {
+        if (r.original.sku_id === originalRow.sku_id) {
+          r.original.category = newCategory;
+        }
+      });
+      toast(`Category updated to ${newCategory} for SKU ${originalRow.sku_id}`);
+    }
+
+    return (
+      <>
+        <Label htmlFor={`${originalRow.sku_id}-category`} className="sr-only">
+          Category
+        </Label>
+        <Select
+          onValueChange={handleCategoryChange}
+          defaultValue={currentValue}
+        >
+          <SelectTrigger
+            className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
+            size="sm"
+            id={`${originalRow.sku_id}-category`}
+          >
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {productCategories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </>
+    )
   },
-  { accessorKey: "category", header: "Category" },
-  { accessorKey: "type", header: "Type" },
-  { accessorKey: "dimensions", header: "Dimensions" },
-  { accessorKey: "weight", header: "Weight" },
-  { accessorKey: "material", header: "Material" },
-  { accessorKey: "strength", header: "Strength" },
+},{
+  accessorKey: "type", // 👈 links to row.category
+  header: "Type",
+  cell: ({ row, table }) => {
+    const originalRow = row.original as DataSchema["products"][number];
+    const currentValue = originalRow.type|| ""
+
+    const handleTypeChange = (newType: string) => {
+      // Update the table row or global state here
+      // For example:
+      table.getRowModel().rows.forEach((r) => {
+        if (r.original.sku_id === originalRow.sku_id) {
+          r.original.type = newType;
+        }
+      });
+      toast(`Category updated to ${newType} for SKU ${originalRow.sku_id}`);
+    }
+
+    return (
+      <>
+        <Label htmlFor={`${originalRow.sku_id}-type`} className="sr-only">
+          Type
+        </Label>
+        <Select
+          onValueChange={handleTypeChange}
+          defaultValue={currentValue}
+        >
+          <SelectTrigger
+            className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
+            size="sm"
+            id={`${originalRow.sku_id}-type`}
+          >
+            <SelectValue placeholder="Select Type" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {productTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </>
+    )
+  },
+},{
+  accessorKey: "dimensions",
+  header: () => <div className="w-56 pl-3">Dimensions</div>,
+  cell: ({ row }) => (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+          loading: `Saving ${row.original.dimensions}`,
+          success: "Saved successfully!",
+          error: "Failed to save.",
+        })
+      }}
+    >
+      <Label htmlFor={`${row.original.sku_id}-dimensions`} className="sr-only">
+        Dimensions
+      </Label>
+      <Input
+        className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-full border-transparent bg-transparent text-left shadow-none focus-visible:border dark:bg-transparent"
+        defaultValue={row.original.dimensions}
+        id={`${row.original.sku_id}-dimensions`}
+      />
+    </form>
+  ),
+},{
+  accessorKey: "weight",
+  header: () => <div className="w-28 pl-3">Weight</div>,
+  cell: ({ row }) => (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+          loading: `Saving weight ${row.original.weight}`,
+          success: "Weight saved successfully!",
+          error: "Failed to save weight.",
+        })
+      }}
+    >
+      <Label htmlFor={`${row.original.sku_id}-weight`} className="sr-only">
+        Weight
+      </Label>
+      <Input
+        className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-full border-transparent bg-transparent text-left shadow-none focus-visible:border dark:bg-transparent"
+        defaultValue={row.original.weight}
+        id={`${row.original.sku_id}-weight`}
+        type="number"
+        step="0.01"
+        min="0"
+        
+      />
+    </form>
+  ),
+},{
+  accessorKey: "material", // 👈 links to row.category
+  header: "Material",
+  cell: ({ row, table }) => {
+    const originalRow = row.original as DataSchema["products"][number];
+    const currentValue = originalRow.material || ""
+
+    const handleMaterialChange = (newMaterial: string) => {
+      // Update the table row or global state here
+      // For example:
+      table.getRowModel().rows.forEach((r) => {
+        if (r.original.sku_id === originalRow.sku_id) {
+          r.original.material = newMaterial;
+        }
+      });
+      toast(`Material updated to ${newMaterial} for SKU ${originalRow.sku_id}`);
+    }
+
+    return (
+      <>
+        <Label htmlFor={`${originalRow.sku_id}-type`} className="sr-only">
+          Material
+        </Label>
+        <Select
+          onValueChange={handleMaterialChange}
+          defaultValue={currentValue}
+        >
+          <SelectTrigger
+            className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
+            size="sm"
+            id={`${originalRow.sku_id}-type`}
+          >
+            <SelectValue placeholder="Select Material" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {productMaterials.map((material) => (
+              <SelectItem key={material} value={material}>
+                {material}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </>
+    )
+  },
+},{
+  accessorKey: "strength",
+  header: ({ column }) => (
+    <Button
+      className="text-[#637381] !px-0 w-32 text-left align-start"
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      Strength
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  cell: ({ row }) => {
+    const strength = row.original.strength.toLowerCase()
+
+   
+
+    return (
+      <div className="w-full">
+        <div className="mb-1 text-xs font-medium">
+          {strength.charAt(0).toUpperCase() + strength.slice(1)}
+        </div>
+        {
+          strength === "low" && <StrengthProgressBar strength="Low" />
+
+        }
+        {
+          strength === "medium" && <StrengthProgressBar strength="Medium" />
+        }
+        {
+          strength === "high" && <StrengthProgressBar strength="High" className="" />
+        }
+      </div>
+    )
+  },
+}, {
+    accessorKey: "is_active",
+    header: ({ column }) => (
+      <Button
+        className="text-[#637381] !px-0"
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Active
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row, table }) => {
+      const [isActive, setIsActive] = React.useState<boolean>(row.original.is_active)
+
+      const handleToggle = (value: boolean) => {
+        setIsActive(value)
+
+        // Optional: update parent table data if meta.updateData exists
+        if (table.options.meta?.updateData) {
+          table.options.meta.updateData(row.index, "is_active", value)
+        }
+        // Show toast notification
+        toast(`Product ${row.original.sku_id} is now ${value ? "active" : "inactive"}`)
+      }
+
+      return (
+        <div className="flex items-center justify-center">
+          <Switch
+            checked={isActive}
+            onCheckedChange={handleToggle}
+            aria-label="Toggle active status"
+          />
+        </div>
+      )
+    },
+  },{
+    id: "actions",
+    cell: ({ row }) => {
+      const product = row.original
+
+      const handleEdit = () => {
+        // ✅ Replace this with your drawer/modal or form logic
+        console.log("Editing product:", product)
+        toast(`Editing product ${product.sku_id}`)
+      }
+
+      const handleDelete = () => {
+        // ✅ Replace this with your delete API call or confirm dialog
+        console.log("Deleting product:", product)
+        toast.error(`Deleted product ${product.sku_id}`)
+      }
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger >
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={handleDelete}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+  },
 ];
 
+type TableMeta = {
+  updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+};
 
-
-export function ProductTable({ data: initialData } : ProductTableProps) {
+export function ProductTable({ data: initialData, tableMeta: TableMeta } : ProductTableProps) {
 
   const data = initialData as DataSchema["products"];
   const [tab, setTab] = React.useState("all");
   const sortableId = React.useId();
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-  const activeCount = initialData.filter((p) => p.is_active && !p.is_deprecated).length;
-  const deprecatedCount = initialData.filter((p) => p.is_deprecated).length;
+  
+    // Active count
+    const activeCount = React.useMemo(() => {
+      return data.filter((p) => p.is_active).length
+    }, [data])
 
-  const filteredProducts = React.useMemo(() => {
+    // Inactive count
+    const inactiveCount = React.useMemo(() => {
+      return data.filter((p) => !p.is_active).length
+    }, [data])
+
+    // Filtered list based on tab
+    const filteredProducts = React.useMemo(() => {
       if (tab === "active") {
-        return data.filter((p) => p.is_active && !p.is_deprecated);
-      } else if (tab === "depricated") {
-        return data.filter((p) => p.is_deprecated);
+        return data.filter((p) => p.is_active)
       }
-      return data;
-    }, [initialData, tab]);
+      if (tab === "inactive") {
+        return data.filter((p) => !p.is_active)
+      }
+      return data // all
+    }, [data, tab])
 
   const dataIds = React.useMemo(
       () => filteredProducts.map(({ sku_id }) => sku_id) || [],
@@ -182,15 +505,29 @@ export function ProductTable({ data: initialData } : ProductTableProps) {
       useSensor(KeyboardSensor, {})
     );
 
-  const table = useReactTable({
+  const table = useReactTable<ProductModel>({
     data : filteredProducts,
     columns,
     state: {
       sorting,
+      columnFilters,
     },
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: unknown) => {
+        const row = table.getRowModel().rows[rowIndex];
+        if (row) {
+          const originalRow = row.original as DataSchema["products"][number];
+          (originalRow as any)[columnId] = value;
+          // Update your data state here if needed
+        }
+      },
+    },
+    getRowId: (row) => row.sku_id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   function handleDragEnd(event: { active: any; over: any; }) {
@@ -226,10 +563,21 @@ export function ProductTable({ data: initialData } : ProductTableProps) {
           <TabsTrigger value="active">
             Active <Badge variant="secondary">{activeCount}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="depricated">
-            Depricated <Badge variant="secondary">{deprecatedCount}</Badge>
+          <TabsTrigger value="inactive">
+            Inactive <Badge variant="secondary">{inactiveCount}</Badge>
           </TabsTrigger>
         </TabsList>
+
+        <div className="flex items-center gap-2">
+          <Input 
+            type="text" 
+            placeholder="Search product name ...." 
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""} 
+            onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
+            className="border p-2  rounded w-96"
+          />
+        </div>
+        
 
         <div className="flex items-center gap-2">
           <DropdownMenu>
@@ -392,3 +740,127 @@ export function ProductTable({ data: initialData } : ProductTableProps) {
      </Tabs>
   );
  }
+
+
+
+ function TableCellViewer({ item }: { item: DataSchema["products"][number] }) {
+  const isMobile = useIsMobile()
+
+  return (
+    <Drawer direction={isMobile ? "bottom" : "right"} >
+      <DrawerTrigger asChild>
+        <Button variant="link" className="text-foreground w-fit px-0 text-left">
+          {item.name}
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="gap-1">
+          <DrawerTitle>{item.name}</DrawerTitle>
+          <DrawerDescription>
+            Precast poduct details and specifications.
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+         
+          <form className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="sku_id">SKUID</Label>
+                  <Input id="sku_id" defaultValue={item.sku_id} disabled readOnly />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="strength">Strength</Label>
+                  <Select defaultValue={item.strength}>
+                  <SelectTrigger id="strength" className="w-full">
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="High">
+                      High
+                    </SelectItem>
+                    <SelectItem value="Medium">
+                      Medium
+                    </SelectItem>
+                    <SelectItem value="Low">
+                      Low
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input id="name" defaultValue={item.name}  />
+            </div>
+
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="category">Category</Label>
+                <Select defaultValue={item.category}>
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                    <SelectContent align="end">
+                    {productCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="type">Type</Label>
+                <Select defaultValue={item.type}>
+                  <SelectTrigger id="type" className="w-full">
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {productTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="dimension">Dimensions</Label>
+                <Input id="dimension" defaultValue={item.dimensions} />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="weight">Weight</Label>
+                <Input id="weight" defaultValue={item.weight} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="material">Material</Label>
+              <Select defaultValue={item.material}>
+                <SelectTrigger id="material" className="w-full">
+                  <SelectValue placeholder="Select a material" />
+                </SelectTrigger>
+                <SelectContent>
+                  {productMaterials.map((material) => (
+                      <SelectItem key={material} value={material}>
+                        {material}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </form>
+        </div>
+        <DrawerFooter>
+          <Button>Submit</Button>
+          <DrawerClose asChild>
+            <Button variant="outline">Done</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}

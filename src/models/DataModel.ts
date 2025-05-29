@@ -12,7 +12,6 @@ export type ProductModel = {
   strength: string;
   design_file: string;
   is_active: boolean;
-  is_deprecated: boolean;
   created_at: string;
   updated_at: string;
 };
