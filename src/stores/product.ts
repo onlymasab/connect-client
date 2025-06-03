@@ -47,10 +47,11 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     if (error) throw error;
 
     const validatedProducts = z.array(ProductSchema).parse(data);
+    console.log(validatedProducts)
     console.log("Validated products:", validatedProducts);
-
+console.log("Products set in store/state.");
     set({ products: validatedProducts, loading: false });
-    console.log("Products set in store/state.");
+    
   } catch (error) {
     const message = (error as PostgrestError).message || "Failed to fetch products";
     set({ error: message, loading: false });

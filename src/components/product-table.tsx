@@ -397,8 +397,9 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
         setIsActive(value)
 
         // Optional: update parent table data if meta.updateData exists
-        if (table.options.meta?.updateData) {
-          table.options.meta.updateData(row.index, "is_active", value)
+        const meta = table.options.meta as TableMeta | undefined;
+        if (meta?.updateData) {
+          meta.updateData(row.index, "is_active", value)
         }
         // Show toast notification
         toast(`Product ${row.original.sku_id} is now ${value ? "active" : "inactive"}`)

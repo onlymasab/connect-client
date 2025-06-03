@@ -10,6 +10,8 @@ export type ProductModel = {
   weight: number;
   material: string;
   strength: string;
+  current_stock: number;
+  minimum_req_stock: number;
   design_file: string;
   is_active: boolean;
   created_at: string;
@@ -36,6 +38,7 @@ export type ProductionBatchModel = {
   end_date?: string;
   quantity_produced?: number;
   quantity_wasted?: number;
+  status : "panding" | "completed" | "halted" | "in_progress",
   notes?: string;
   created_at: string;
   updated_at: string;

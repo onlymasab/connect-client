@@ -16,6 +16,8 @@ export const ProductSchema = z.object({
   material: z.string().min(1, "Material is required"),
   strength: z.string().min(1, "Strength is required"),
   design_file: z.string().min(1, "Design File is required"),
+  current_stock: z.number().nonnegative().min(0, "Stock must be non-negative"),
+  minimum_req_stock: z.number().nonnegative().min(0, "Minimum Stock must be non-negative"),
   is_active: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
