@@ -32,8 +32,8 @@ export const RawMaterialSchema = z.object({
   current_stock: z.number().nonnegative().optional(),
   min_required_stock: z.number().nonnegative().optional(),
   supplier: z.string().optional(),
-  created_at: z.string().regex(usDateRegex, "Invalid date format, expected MM/DD/YYYY, HH:MM:SS AM/PM"),
-  updated_at: z.string().regex(usDateRegex, "Invalid date format, expected MM/DD/YYYY, HH:MM:SS AM/PM"),
+  created_at: z.string(), // ← accepts ISO format
+  updated_at: z.string(),
 });
 
 // --- Production Batch ---
