@@ -1,3 +1,4 @@
+"use client"
 import { PrecastProductMaterialModel, RawMaterialUsageModel } from "@/models/DataModel";
 import { useSortable } from "@dnd-kit/sortable";
 import { Button } from "./ui/button";
@@ -9,6 +10,14 @@ import { Checkbox } from "./ui/checkbox";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { format } from "date-fns";
+import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useMemo, useState } from "react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 
 type ProductMaterialTableProps = {
@@ -170,23 +179,81 @@ const columns: ColumnDef<PrecastProductMaterialModel>[] = [
   },
 ];
 
-export function ProductMaterialTable({ data: initialData, tableMeta: TableMeta } : ProductMaterialTableProps) {
-  const data : PrecastProductMaterialModel[] = initialData;
+export function ProductMaterialTable({
+  data: initialData,
+  tableMeta: TableMeta,
+}: ProductMaterialTableProps) {
+  // Extract unique product names from data
+  const productNames = React.useMemo(() => {
+    const names = initialData.map((item) => item.product?.name).filter(Boolean) as string[]
+    return Array.from(new Set(names)) // unique names
+  }, [initialData])
+
+  const [open, setOpen] = React.useState(false)
+  const [value, setValue] = React.useState("")
 
   const table = useReactTable({
-    data,
-    columns,
+    data: initialData,
+    columns: columns,
     getCoreRowModel: getCoreRowModel(),
-  })
+  });
 
-    return(
-        <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
+  return (
+    <div className="px-4 lg:px-6 mb-4">
+      <div className="flex items-center justify-between  mb-4">
+        <Label htmlFor="view-selector" className="sr-only">
+          View
+        </Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger >
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[200px] justify-between"
+            >
+              {value || "Select product..."}
+              <ChevronsUpDown className="opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search product..." className="h-9" />
+              <CommandList>
+                <CommandEmpty>No product found.</CommandEmpty>
+                <CommandGroup>
+                  {productNames.map((name) => (
+                    <CommandItem
+                      key={name}
+                      value={name}
+                      onSelect={(currentValue) => {
+                        setValue(currentValue === value ? "" : currentValue)
+                        setOpen(false)
+                      }}
+                    >
+                      {name}
+                      <Check
+                        className={cn(
+                          "ml-auto",
+                          value === name ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="rounded-md border px-4 lg:px-6 mb-4">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
@@ -195,36 +262,39 @@ export function ProductMaterialTable({ data: initialData, tableMeta: TableMeta }
                           header.getContext()
                         )}
                   </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
-    );
+  );
 }
 
 
