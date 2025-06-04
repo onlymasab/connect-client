@@ -183,18 +183,24 @@ export function ProductMaterialTable({
   data: initialData,
   tableMeta: TableMeta,
 }: ProductMaterialTableProps) {
-  // Extract unique product names from data
+  // Extract unique product names from initialData
   const productNames = React.useMemo(() => {
-    const names = initialData.map((item) => item.product?.name).filter(Boolean) as string[]
-    return Array.from(new Set(names)) // unique names
-  }, [initialData])
+    const names = initialData.map((item) => item.product?.name).filter(Boolean);
+    return Array.from(new Set(names)); // unique names
+  }, [initialData]);
 
-  const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
+
+  // Filter data based on selected product name
+  const filteredData = React.useMemo(() => {
+    if (!value) return initialData; // show all if no filter
+    return initialData.filter((item) => item.product?.name === value);
+  }, [initialData, value]);
 
   const table = useReactTable({
-    data: initialData,
-    columns: columns,
+    data: filteredData,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
