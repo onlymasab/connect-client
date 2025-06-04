@@ -110,7 +110,7 @@ export default function InvoicePage() {
             <div className="space-y-2">
               <Label>Service Period</Label>
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {period.from ? (
