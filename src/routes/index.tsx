@@ -8,6 +8,7 @@ import ProductionPage from '@/pages/ProductionPage';
 import MaterialPage from '@/pages/MaterialPage';
 import InvoicePage from '@/pages/InvoicePage';
 import DispatchPage from '@/pages/DispatchPage';
+import ReturnPage from '@/pages/ReturnPage';
 
 export const routes: RouteObject[] = [
   {
@@ -43,7 +44,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'return', // renders at "/product"
-        element: <MaterialPage />,
+        element: <ReturnPage />,
       },
       {
         path: 'inventory', // renders at "/product"
