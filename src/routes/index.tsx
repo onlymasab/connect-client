@@ -7,6 +7,7 @@ import ProductPage from '@/pages/ProductPage';
 import ProductionPage from '@/pages/ProductionPage';
 import MaterialPage from '@/pages/MaterialPage';
 import InvoicePage from '@/pages/InvoicePage';
+import DispatchPage from '@/pages/DispatchPage';
 
 export const routes: RouteObject[] = [
   {
@@ -38,7 +39,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'dispatch', // renders at "/product"
-        element: <ProductionPage />,
+        element: <DispatchPage />,
       },
       {
         path: 'return', // renders at "/product"
