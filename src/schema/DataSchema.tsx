@@ -36,6 +36,16 @@ export const RawMaterialSchema = z.object({
   updated_at: z.string(),
 });
 
+// --- Product Raw Material ---
+export const PrecastProductRawMaterialSchema = z.object({
+  id: z.string().uuid(),
+  product_id: z.string().min(1),
+  material_id: z.string(),
+  quantity: z.number().nonnegative(),
+  unit: z.string().min(1),
+  created_at: z.string(),
+});
+
 // --- Production Batch ---
 export const ProductionBatchSchema = z.object({
   batch_id: z.string().uuid(),

@@ -34,6 +34,7 @@ export default function MaterialPage() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                <RawMaterialTable data={rawMaterials as RawMaterialModel[]} tableMeta={{ updateData: () => {} }} />
                 {/* Product Material Usage Table */}
+                <ProductMaterialTable data={rawMaterials as RawMaterialModel[]} tableMeta={{ updateData: () => {} }} />
             </div>
         </div>
     );

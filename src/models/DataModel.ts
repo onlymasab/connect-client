@@ -44,6 +44,15 @@ export type ProductionBatchModel = {
   updated_at: string;
 };
 
+export type PrecastProductMaterialModel = {
+  id : string;
+  product_id : string;
+  material_id : string;
+  quantity : number;
+  unit : string;
+  created_at : string;
+};
+
 export type RawMaterialUsageModel = {
   usage_id: string;
   batch_id: string;
