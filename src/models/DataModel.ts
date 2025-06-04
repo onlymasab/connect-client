@@ -45,12 +45,18 @@ export type ProductionBatchModel = {
 };
 
 export type PrecastProductMaterialModel = {
-  id : string;
-  product_id : string;
-  material_id : string;
-  quantity : number;
-  unit : string;
-  created_at : string;
+  id: string;
+  created_at: string;
+  quantity: number;
+  unit: string;
+  material: {
+    name: string;
+    raw_material_id: string;
+  };
+  product: {
+    name: string;
+    product_id: string;
+  };
 };
 
 export type RawMaterialUsageModel = {

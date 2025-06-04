@@ -38,12 +38,18 @@ export const RawMaterialSchema = z.object({
 
 // --- Product Raw Material ---
 export const PrecastProductRawMaterialSchema = z.object({
-  id: z.string().uuid(),
-  product_id: z.string().min(1),
-  material_id: z.string(),
-  quantity: z.number().nonnegative(),
-  unit: z.string().min(1),
-  created_at: z.string(),
+   id: z.string().uuid(),
+  created_at: z.string(), // or z.string().datetime() in zod v3+
+  quantity: z.number().min(0),
+  unit: z.string(),
+  material: z.object({
+    name: z.string(),
+    raw_material_id: z.string().uuid(),
+  }),
+  product: z.object({
+    name: z.string(),
+    product_id: z.string().uuid(),
+  }),
 });
 
 // --- Production Batch ---
