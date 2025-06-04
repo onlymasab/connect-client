@@ -2,13 +2,13 @@
 import { PrecastProductMaterialModel, RawMaterialUsageModel } from "@/models/DataModel";
 import { useSortable } from "@dnd-kit/sortable";
 import { Button } from "./ui/button";
-import { IconDotsVertical, IconGripVertical } from "@tabler/icons-react";
+import { IconChevronDown, IconDotsVertical, IconGripVertical, IconLayoutColumns } from "@tabler/icons-react";
 import { ColumnDef, flexRender, getCoreRowModel, Row, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "./ui/checkbox";
 import { toast } from "sonner";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { format } from "date-fns";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -106,11 +106,11 @@ const columns: ColumnDef<PrecastProductMaterialModel>[] = [
     enableSorting: false,
     enableHiding: false,
   }, {
-    accessorKey: "name", // 👈 links to row.category
+    accessorKey: "product", // 👈 links to row.category
     header: "Product Name",
     cell: ({ table , row }) => <div className="w-32">{row.original.product.name}</div>
   }, {
-    accessorKey: "name", // 👈 links to row.category
+    accessorKey: "material", // 👈 links to row.category
     header: "Material Name",
     cell: ({ table , row }) => <div className="w-32">{row.original.material.name}</div>
   }, {
@@ -252,6 +252,38 @@ export function ProductMaterialTable({
             </Command>
           </PopoverContent>
         </Popover>
+            <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="outline" size="sm">
+                <IconLayoutColumns />
+                <span className="hidden lg:inline">Customize Columns</span>
+                <span className="lg:hidden">Columns</span>
+                <IconChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {table
+                .getAllColumns()
+                .filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" size="sm" className="hidden @4xl/main:flex" onClick={() => {}}>
+            <span className="hidden lg:inline">Add Product</span>
+            <span className="lg:hidden">New</span>
+          </Button>
+        </div> 
+
       </div>
 
       <div className="rounded-md border px-4 lg:px-6 mb-4">
