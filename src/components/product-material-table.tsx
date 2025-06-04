@@ -8,7 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "./ui/checkbox";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-
+import { format } from "date-fns";
 
 
 type ProductMaterialTableProps = {
@@ -115,7 +115,17 @@ const columns: ColumnDef<PrecastProductMaterialModel>[] = [
   }, {
     accessorKey: "created", // 👈 links to row.category
     header: "Created at",
-    cell: ({ table , row }) => <div className="w-32">{row.original.created_at}</div>
+    cell: ({ table , row }) => {
+          const rawDate = row.original.created_at;
+          const date = new Date(rawDate);
+    
+          const formatted = `${format(date, "dd MMM yyyy")}\n${format(date, "hh:mm a")}`;
+          
+          return <div className="flex flex-col gap-2 group hover:text-gray-500 w-24">
+              <div className="group-hover:text-blue-500">{format(date, "dd MMM yyyy")}</div>
+              <div className="text-[14px] text-gray-500">{format(date, "hh:mm a")}</div>
+          </div>;
+        }
   } ,{
     id: "actions",
     cell: ({ row }) => {
