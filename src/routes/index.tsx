@@ -9,6 +9,7 @@ import MaterialPage from '@/pages/MaterialPage';
 import InvoicePage from '@/pages/InvoicePage';
 import DispatchPage from '@/pages/DispatchPage';
 import ReturnPage from '@/pages/ReturnPage';
+import InventoryPage from '@/pages/InventoryPage';
 
 export const routes: RouteObject[] = [
   {
@@ -48,7 +49,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'inventory', // renders at "/product"
-        element: <ProductPage />,
+        element: <InventoryPage />,
       },
     ],
   },
