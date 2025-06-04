@@ -176,7 +176,7 @@ export default function DispatchPage() {
             Print
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger >
+            <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
                 Create Dispatch
@@ -294,7 +294,7 @@ export default function DispatchPage() {
                   <div className="space-y-2">
                     <Label htmlFor="date">Est. Delivery</Label>
                     <Popover>
-                      <PopoverTrigger >
+                      <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left font-normal">
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {newDispatch.estimatedDelivery ? format(newDispatch.estimatedDelivery, "PPP") : <span>Pick a date</span>}
@@ -513,7 +513,7 @@ export default function DispatchPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Dialog>
-                        <DialogTrigger >
+                        <DialogTrigger asChild>
                           <Button variant="ghost" size="sm">View</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[600px]">
