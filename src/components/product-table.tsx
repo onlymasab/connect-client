@@ -14,11 +14,9 @@ import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, us
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DataSchema } from "@/schema/DataSchema";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, } from "@dnd-kit/sortable";
-
-
+import { RiArrowDownSLine, RiArrowUpSLine } from "react-icons/ri";
 
 import {
   ColumnDef,
@@ -32,14 +30,17 @@ import {
   ColumnFilter,
   ColumnFiltersColumn,
   ColumnFiltersState,
+  getExpandedRowModel,
+  ExpandedState,
 } from "@tanstack/react-table";
-import React from "react";
-import { ArrowUpDown } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowUpDown, Minus, Plus } from "lucide-react";
 import { productCategories, productMaterials, productTypes } from "@/constants/productOptions";
 import { StrengthProgressBar } from "./ui/strength-progress";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { Separator } from "./ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { StockProgressBar } from "./ui/stock-progress";
 
 
 type ProductTableProps = {
@@ -72,22 +73,42 @@ function DraggableRow({ row }: { row: Row<ProductModel> }) {
   });
 
   return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
+    <>
+      <TableRow
+        data-state={row.getIsSelected() && "selected"}
+        data-dragging={isDragging}
+        ref={setNodeRef}
+        className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+        style={{
+          transform: CSS.Transform.toString(transform),
+          transition: transition,
+        }}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+      
+      {row.getIsExpanded() && (
+        <TableRow>
+          <TableCell colSpan={row.getVisibleCells().length}>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              {row.original.product_material && row.original.product_material.length > 0 ? (
+                row.original.product_material.map((data, index) => (
+                  <div key={index} className="text-black">
+                    {data.material.name}
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-400 italic">No content</div>
+              )}
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
   );
 }
 
@@ -95,7 +116,7 @@ function DraggableRow({ row }: { row: Row<ProductModel> }) {
 
 
 
-const columns: ColumnDef<DataSchema["products"][number]>[] = [
+const columns: ColumnDef<ProductModel>[] = [
   {
     id: "drag",
     header: () => null,
@@ -104,7 +125,7 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
   {
     id: "select",
     header: ({ table }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center w-16">
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
@@ -126,17 +147,33 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
+  },{
+    header: " ",
+    cell: ({ row }) => {
+      return row.getCanExpand() ?
+        <button
+          onClick={row.getToggleExpandedHandler()}
+          style={{ cursor: 'pointer' }}
+        >
+        {row.getIsExpanded() ? <RiArrowUpSLine size={20}/> :  
+          <RiArrowDownSLine size={20} />
+        }
+        </button>
+       : '';
+    },
   },
   {
     accessorKey: "sku_id",
     header: ({ column }) => (
       <Button
-        className="text-[#637381] !px-0"
+        className="text-[#637381] !px-0 w-24"
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        SKU ID
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        <div className="w-full flex flex-row">
+          SKU ID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </div>
       </Button>
     ),
     cell: ({ row }) => <div className="">{row.original.sku_id}</div>,
@@ -145,22 +182,55 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <Button 
-          className="text-[#637381] !px-0"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Name
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
+          <Button 
+              className="text-[#637381] !px-0 w-56 text-left"
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            <div className="w-full flex flex-row align-center items-center">Name <ArrowUpDown className="ml-2 h-4 w-4" /></div>
+            
+          </Button>
+      
     ),
-    cell: ({ row }) => <TableCellViewer item={row.original} />,
+    cell: ({ row }) => 
+      <div>
+          <TableCellViewer item={row.original} />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+                loading: `Saving ${row.original.dimensions}`,
+                success: "Saved successfully!",
+                error: "Failed to save.",
+              })
+            }}
+          >
+            <Label htmlFor={`${row.original.sku_id}-dimensions`} className="sr-only">
+              Dimensions
+            </Label>
+            <Input
+              className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30  px-1 w-full border-transparent bg-transparent text-left shadow-none focus-visible:border dark:bg-transparent"
+              defaultValue={row.original.dimensions}
+              id={`${row.original.sku_id}-dimensions`}
+            />
+          </form>
+      </div>
+    ,
     enableHiding: false,
+  }, {
+    accessorKey: "date",
+    header: "Date",
+    cell: ({ row }) =>
+      <div className="flex flex-col gap-1 w-32">
+        <div className="font-medium">{new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.original.created_at))}</div>
+        <div className="text-gray-500">{new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(row.original.created_at)).toLowerCase()}</div>
+      </div>
+    
   },{
   accessorKey: "category", // 👈 links to row.category
   header: "Category",
   cell: ({ row, table }) => {
-    const originalRow = row.original as DataSchema["products"][number];
+    const originalRow = row.original as ProductModel;
     const currentValue = originalRow.category || ""
 
     const handleCategoryChange = (newCategory: string) => {
@@ -205,7 +275,7 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
   accessorKey: "type", // 👈 links to row.category
   header: "Type",
   cell: ({ row, table }) => {
-    const originalRow = row.original as DataSchema["products"][number];
+    const originalRow = row.original as ProductModel;
     const currentValue = originalRow.type|| ""
 
     const handleTypeChange = (newType: string) => {
@@ -247,26 +317,30 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
     )
   },
 },{
-  accessorKey: "dimensions",
-  header: () => <div className="w-56 pl-3">Dimensions</div>,
+  accessorKey: "price",
+  header: () => <div className="w-28 pl-3">Price</div>,
   cell: ({ row }) => (
     <form
       onSubmit={(e) => {
         e.preventDefault()
         toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-          loading: `Saving ${row.original.dimensions}`,
-          success: "Saved successfully!",
-          error: "Failed to save.",
+          loading: `Saving price ${row.original.price}`,
+          success: "Price saved successfully!",
+          error: "Failed to save price.",
         })
       }}
     >
-      <Label htmlFor={`${row.original.sku_id}-dimensions`} className="sr-only">
-        Dimensions
+      <Label htmlFor={`${row.original.sku_id}-price`} className="sr-only">
+        price
       </Label>
       <Input
         className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-full border-transparent bg-transparent text-left shadow-none focus-visible:border dark:bg-transparent"
-        defaultValue={row.original.dimensions}
-        id={`${row.original.sku_id}-dimensions`}
+        defaultValue={row.original.price}
+        id={`${row.original.sku_id}-price`}
+        type="number"
+        step="0.01"
+        min="0"
+        
       />
     </form>
   ),
@@ -299,10 +373,37 @@ const columns: ColumnDef<DataSchema["products"][number]>[] = [
     </form>
   ),
 },{
+  accessorKey: "stock",
+  header: ({ column }) => (
+    <Button
+      className="text-[#637381] !px-0 w-32 text-left align-start"
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      Stock
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  cell: ({ row }) => {
+    const stock = row.original.current_stock;
+    const minimumRequired = row.original.minimum_req_stock;
+
+    const stockText = stock === 0 ? "Out of stock" : `${stock} in stock`;
+
+    return (
+      <div className="w-full">
+        <div className="mb-1 text-xs font-medium text-muted-foreground">
+          {stockText}
+        </div>
+        <StockProgressBar stock={stock} minimum={minimumRequired} />
+      </div>
+    );
+  },
+},{
   accessorKey: "material", // 👈 links to row.category
   header: "Material",
   cell: ({ row, table }) => {
-    const originalRow = row.original as DataSchema["products"][number];
+    const originalRow = row.original as ProductModel;
     const currentValue = originalRow.material || ""
 
     const handleMaterialChange = (newMaterial: string) => {
@@ -466,14 +567,13 @@ type TableMeta = {
 
 export function ProductTable({ data: initialData, tableMeta: TableMeta } : ProductTableProps) {
 
-  const data = initialData as DataSchema["products"];
+  const data = initialData as ProductModel[];
   const [tab, setTab] = React.useState("all");
   const sortableId = React.useId();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-
-  
+  const [expanded, setExpanded] = useState<ExpandedState>({})
     // Active count
     const activeCount = React.useMemo(() => {
       return data.filter((p) => p.is_active).length
@@ -513,23 +613,29 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
     state: {
       sorting,
       columnFilters,
+       expanded: expanded,
+
     },
     meta: {
       updateData: (rowIndex: number, columnId: string, value: unknown) => {
         const row = table.getRowModel().rows[rowIndex];
         if (row) {
-          const originalRow = row.original as DataSchema["products"][number];
+          const originalRow = row.original as ProductModel;
           (originalRow as any)[columnId] = value;
           // Update your data state here if needed
         }
       },
     },
+    //getSubRows: (row) => row.product_material,
+    onExpandedChange: setExpanded,
+    getRowCanExpand: () => true,
     getRowId: (row) => row.sku_id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
   })
 
   function handleDragEnd(event: { active: any; over: any; }) {
@@ -772,6 +878,7 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
                   <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
                     {table.getRowModel().rows.map((row) => (
                       <DraggableRow key={row.id} row={row} />
+                      
                     ))}
                   </SortableContext>
                 ) : (
@@ -872,7 +979,7 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
  }
 
 
- function generateNextSkuId(products : DataSchema["products"]): string {
+ function generateNextSkuId(products : ProductModel[]): string {
   if (!products || products.length === 0) {
     return "SKU0001";
   }
@@ -891,7 +998,7 @@ export function ProductTable({ data: initialData, tableMeta: TableMeta } : Produ
 
 
  // TableCellViewer component for displaying product details in a drawer
- function TableCellViewer({ item }: { item: DataSchema["products"][number] }) {
+ function TableCellViewer({ item }: { item: ProductModel }) {
   const isMobile = useIsMobile()
 
   return (

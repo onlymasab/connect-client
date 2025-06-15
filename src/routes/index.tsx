@@ -25,7 +25,7 @@ export const routes: RouteObject[] = [
         element: <DashboardPage />,
       },
       {
-        path: 'product', // renders at "/product"
+        path: 'products', // renders at "/product"
         element: <ProductPage />,
       },
       {
@@ -33,10 +33,10 @@ export const routes: RouteObject[] = [
         element: <ProductionPage />,
       },
       {
-        path: 'material', // renders at "/product"
+        path: 'materials', // renders at "/product"
         element: <MaterialPage />,
       },{
-        path: 'invoice', // renders at "/product"
+        path: 'invoices', // renders at "/product"
         element: <InvoicePage />,
       },
       {
@@ -44,7 +44,7 @@ export const routes: RouteObject[] = [
         element: <DispatchPage />,
       },
       {
-        path: 'return', // renders at "/product"
+        path: 'returns', // renders at "/product"
         element: <ReturnPage />,
       },
       {

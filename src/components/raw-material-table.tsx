@@ -124,6 +124,20 @@ const columns: ColumnDef<RawMaterialModel>[] = [
           <div className="text-[14px] text-gray-500">{format(date, "hh:mm a")}</div>
       </div>;
     }
+  },{
+    accessorKey: "update", // 👈 links to row.category
+    header: "Update",
+    cell: ({ table , row }) => {
+      const rawDate = row.original.updated_at;
+      const date = new Date(rawDate);
+
+      const formatted = `${format(date, "dd MMM yyyy")}\n${format(date, "hh:mm a")}`;
+      
+      return <div className="flex flex-col gap-2 group hover:text-gray-500 w-24">
+          <div className="group-hover:text-blue-500">{format(date, "dd MMM yyyy")}</div>
+          <div className="text-[14px] text-gray-500">{format(date, "hh:mm a")}</div>
+      </div>;
+    }
   }, {
     accessorKey: "current_stock", // 👈 links to row.category
     header: "Stock",
@@ -356,7 +370,7 @@ export function RawMaterialTable({ data: initialData, tableMeta: TableMeta } : R
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="outline" size="sm" className="hidden @4xl/main:flex" onClick={() => {}}>
-            <span className="hidden lg:inline">Add Product</span>
+            <span className="hidden lg:inline">Add Material</span>
             <span className="lg:hidden">New</span>
           </Button>
         </div> 

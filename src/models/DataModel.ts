@@ -16,6 +16,8 @@ export type ProductModel = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  price: number
+  product_material: PrecastProductMaterialModel[],
 };
 
 export type RawMaterialModel = {

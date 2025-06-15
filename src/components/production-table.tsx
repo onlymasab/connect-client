@@ -1,5 +1,4 @@
 import { ProductionBatchModel } from "@/models/DataModel";
-import { DataSchema } from "@/schema/DataSchema";
 import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, } from "@dnd-kit/sortable";
 import React, { useState } from "react";

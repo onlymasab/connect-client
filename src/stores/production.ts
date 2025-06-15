@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-import { ProductionBatchModel } from "@/models/DataModel";
-import { ProductionBatchSchema } from "@/schema/DataSchema";
+import { ProductionBatchModel, ProductModel } from "@/models/DataModel";
 import { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 import z from "zod";
 import { create } from "zustand";
@@ -44,7 +43,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     console.log("Data fetched:", data);
     if (error) throw error;
 
-    const validatedProductions = z.array(ProductionBatchSchema).parse(data);
+    const validatedProductions = data as ProductionBatchModel[];
     console.log(validatedProductions)
     console.log("Validated products:", validatedProductions);
     console.log("Products set in store/state.");
@@ -60,7 +59,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   addProductions: async (productions: ProductionBatchModel) => {
     set({ loading: true, error: null });
     try {
-      ProductionBatchSchema.parse(productions);
+      ;
       const { data, error } = await supabase.from("production_batches").insert([productions]).select();
       if (error) throw error;
       if (data && data[0]) {
@@ -116,19 +115,19 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           const currentProductions = get().productions;
           try {
             if (payload.eventType === "INSERT" && payload.new) {
-              const newProduct = ProductionBatchSchema.parse(payload.new);
+              const newProduct = payload.new as ProductionBatchModel;
               set({ productions: [...currentProductions, newProduct] });
             } else if (payload.eventType === "UPDATE" && payload.new) {
-              const updatedProduct = ProductionBatchSchema.parse(payload.new);
+              const updatedProduct = payload.new as ProductionBatchModel;
               set({
                 productions: currentProductions.map((p) =>
                   p.batch_number=== updatedProduct.batch_number ? updatedProduct : p
                 ),
               });
             } else if (payload.eventType === "DELETE" && payload.old) {
-              const deletedSku = ProductionBatchSchema.parse(payload.old).batch_number;
+              const deletedBatchNumber = payload.old.batch_number as string;
               set({
-                productions: currentProductions.filter((p) => p.batch_number !== deletedSku),
+                productions: currentProductions.filter((p) => p.batch_number !== deletedBatchNumber),
               });
             }
           } catch (error) {

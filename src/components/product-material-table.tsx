@@ -279,7 +279,7 @@ export function ProductMaterialTable({
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="outline" size="sm" className="hidden @4xl/main:flex" onClick={() => {}}>
-            <span className="hidden lg:inline">Add Product</span>
+            <span className="hidden lg:inline">Add Material</span>
             <span className="lg:hidden">New</span>
           </Button>
         </div> 

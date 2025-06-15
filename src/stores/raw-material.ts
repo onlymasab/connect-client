@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase/client";
-import { ProductSchema, RawMaterialSchema } from "@/schema/DataSchema"; // Adjust path as needed
 import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 import z from "zod";
 import { ProductModel, RawMaterialModel } from "@/models/DataModel";
@@ -46,7 +45,7 @@ export const useRawMaterialStore = create<RawMaterialStore>((set, get) => ({
     console.log("Data fetched:", data);
     if (error) throw error;
 
-    const validatedRawMaterials = z.array(RawMaterialSchema).parse(data);
+    const validatedRawMaterials = data as RawMaterialModel[];
     console.log(validatedRawMaterials)
     console.log("Validated Raw Material:", validatedRawMaterials);
     console.log("RawMaterils set in store/state.");
@@ -62,7 +61,7 @@ export const useRawMaterialStore = create<RawMaterialStore>((set, get) => ({
   addRawMaterial: async (rawMaterial: RawMaterialModel) => {
     set({ loading: true, error: null });
     try {
-      RawMaterialSchema.parse(rawMaterial);
+      rawMaterial as RawMaterialModel;
       const { data, error } = await supabase.from("raw_materials").insert([rawMaterial]).select();
       if (error) throw error;
       if (data && data[0]) {
@@ -118,17 +117,17 @@ export const useRawMaterialStore = create<RawMaterialStore>((set, get) => ({
           const currentRawMaterials = get().rawMaterials;
           try {
             if (payload.eventType === "INSERT" && payload.new) {
-              const newRawMaterial = RawMaterialSchema.parse(payload.new);
+              const newRawMaterial = payload.new as RawMaterialModel;
               set({ rawMaterials: [...currentRawMaterials, newRawMaterial] });
             } else if (payload.eventType === "UPDATE" && payload.new) {
-              const updatedRawMaterial = RawMaterialSchema.parse(payload.new);
+              const updatedRawMaterial = payload.new as RawMaterialModel;
               set({
                 rawMaterials: currentRawMaterials.map((p) =>
                   p.raw_material_id === updatedRawMaterial.raw_material_id ? updatedRawMaterial : p
                 ),
               });
             } else if (payload.eventType === "DELETE" && payload.old) {
-              const deletedMaterialId = RawMaterialSchema.parse(payload.old).raw_material_id;
+              const deletedMaterialId = payload.old.raw_material_id;
               set({
                 rawMaterials: currentRawMaterials.filter((p) => p.raw_material_id !== deletedMaterialId),
               });

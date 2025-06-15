@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase/client";
-import { ProductSchema } from "@/schema/DataSchema"; // Adjust path as needed
 import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 import z from "zod";
 import { ProductModel } from "@/models/DataModel";
@@ -41,12 +40,27 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   console.log("Fetching products...");
 
   try {
-    const { data, error } = await supabase.from("products").select("*");
+    const { data, error } = await supabase
+  .from("products")
+  .select(`
+    *,
+    precast_product_materials (
+      id,
+      material_id,
+      quantity,
+      unit,
+      created_at,
+      material:raw_materials (
+        raw_material_id,
+        name
+      )
+    )
+  `);
     console.log("Supabase response:", { data, error });
-    console.log("Data fetched:", data);
+    console.log("Data Product fetched:", data);
     if (error) throw error;
 
-    const validatedProducts = z.array(ProductSchema).parse(data);
+    const validatedProducts = data as ProductModel[];
     console.log(validatedProducts)
     console.log("Validated products:", validatedProducts);
 console.log("Products set in store/state.");
@@ -61,8 +75,7 @@ console.log("Products set in store/state.");
 
   addProduct: async (product: ProductModel) => {
     set({ loading: true, error: null });
-    try {
-      ProductSchema.parse(product);
+    try {;
       const { data, error } = await supabase.from("products").insert([product]).select();
       if (error) throw error;
       if (data && data[0]) {
@@ -118,17 +131,17 @@ console.log("Products set in store/state.");
           const currentProducts = get().products;
           try {
             if (payload.eventType === "INSERT" && payload.new) {
-              const newProduct = ProductSchema.parse(payload.new);
+              const newProduct = payload.new as ProductModel;
               set({ products: [...currentProducts, newProduct] });
             } else if (payload.eventType === "UPDATE" && payload.new) {
-              const updatedProduct = ProductSchema.parse(payload.new);
+              const updatedProduct = payload.new as ProductModel;
               set({
                 products: currentProducts.map((p) =>
                   p.sku_id === updatedProduct.sku_id ? updatedProduct : p
                 ),
               });
             } else if (payload.eventType === "DELETE" && payload.old) {
-              const deletedSku = ProductSchema.parse(payload.old).sku_id;
+              const deletedSku = payload.old.sku_id as string;
               set({
                 products: currentProducts.filter((p) => p.sku_id !== deletedSku),
               });
