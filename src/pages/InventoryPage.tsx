@@ -323,7 +323,7 @@ export default function InventoryPage() {
   const fadeIn = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 bg-background text-foreground">
       {/* Header */}
       <motion.div initial="hidden" animate="visible" variants={fadeIn} className="flex justify-between items-center">
         <div>
@@ -354,9 +354,9 @@ export default function InventoryPage() {
           { title: "Total Value", value: `$${totalInventoryValue.toLocaleString()}`, icon: BarChart2, description: "Current inventory value", trend: "up", trendValue: "5.2%" },
         ].map((stat, index) => (
           <motion.div key={stat.title} variants={fadeIn} initial="hidden" animate="visible" transition={{ delay: index * 0.1 }}>
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="hover:shadow-md transition-shadow bg-background">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">{stat.title}</CardTitle>
                 <div className="flex items-center gap-1">
                   <stat.icon className="h-4 w-4 text-muted-foreground" />
                   {stat.trend === "up" ? (
@@ -367,7 +367,7 @@ export default function InventoryPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">{stat.description}</p>
               </CardContent>
             </Card>
@@ -393,61 +393,65 @@ export default function InventoryPage() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Add New Precast Product</h3>
+                <h3 className="text-lg font-semibold text-foreground">Add New Precast Product</h3>
                 <Button variant="ghost" size="sm" onClick={() => setIsAddingProduct(false)}>✕</Button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label>Product Name</Label>
+                  <Label className="text-foreground">Product Name</Label>
                   <Input
                     placeholder="Enter product name"
                     value={newProduct.name}
                     onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+                    className="text-foreground"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Category</Label>
+                    <Label className="text-foreground">Category</Label>
                     <Select value={newProduct.category} onValueChange={value => setNewProduct({ ...newProduct, category: value })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-foreground">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Structural">Structural</SelectItem>
-                        <SelectItem value="Flooring">Flooring</SelectItem>
-                        <SelectItem value="Wall">Wall</SelectItem>
-                        <SelectItem value="Custom">Custom</SelectItem>
+                      <SelectContent className="bg-background">
+                        <SelectItem value="Structural" className="text-foreground">Structural</SelectItem>
+                        <SelectItem value="Flooring" className="text-foreground">Flooring</SelectItem>
+                        <SelectItem value="Wall" className="text-foreground">Wall</SelectItem>
+                        <SelectItem value="Custom" className="text-foreground">Custom</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Low Stock Threshold</Label>
+                    <Label className="text-foreground">Low Stock Threshold</Label>
                     <Input
                       type="number"
                       min="1"
                       value={newProduct.lowStockThreshold}
                       onChange={e => setNewProduct({ ...newProduct, lowStockThreshold: parseInt(e.target.value) || 0 })}
+                      className="text-foreground"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Initial Stock</Label>
+                    <Label className="text-foreground">Initial Stock</Label>
                     <Input
                       type="number"
                       min="0"
                       value={newProduct.stock}
                       onChange={e => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) || 0 })}
+                      className="text-foreground"
                     />
                   </div>
                   <div>
-                    <Label>Price ($)</Label>
+                    <Label className="text-foreground">Price ($)</Label>
                     <Input
                       type="number"
                       min="0.01"
                       step="0.01"
                       value={newProduct.price}
                       onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })}
+                      className="text-foreground"
                     />
                   </div>
                 </div>
@@ -470,11 +474,11 @@ export default function InventoryPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50 shadow-sm"
+            className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 shadow-sm"
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" /> Gemini 2.0 Flash Insights
+              <h3 className="font-semibold flex items-center gap-2 text-foreground">
+                <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Gemini 2.0 Flash Insights
                 <Badge variant="outline" className="ml-2">Real-time Analysis</Badge>
               </h3>
               <Button variant="ghost" size="sm" onClick={() => setAiInsightOpen(false)}>Close</Button>
@@ -482,13 +486,13 @@ export default function InventoryPage() {
             {isAnalyzing ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                <span className="ml-2">Gemini 2.0 Flash analyzing...</span>
+                <span className="ml-2 text-foreground">Gemini 2.0 Flash analyzing...</span>
               </div>
             ) : aiAnalysis ? (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4 bg-white">
-                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <div className="border rounded-lg p-4 bg-background dark:bg-card">
+                    <h4 className="font-medium mb-3 flex items-center gap-2 text-foreground">
                       <AlertCircle className="h-5 w-5 text-orange-500" /> Risk Assessment
                     </h4>
                     <Badge
@@ -512,43 +516,43 @@ export default function InventoryPage() {
                     </p>
                   </div>
                   {aiAnalysis.salesForecast && (
-                    <div className="border rounded-lg p-4 bg-white">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border rounded-lg p-4 bg-background dark:bg-card">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 text-foreground">
                         <BarChart2 className="h-5 w-5 text-blue-500" /> Sales Forecast
                       </h4>
-                      <p className="text-sm">{aiAnalysis.salesForecast}</p>
+                      <p className="text-sm text-foreground">{aiAnalysis.salesForecast}</p>
                     </div>
                   )}
                 </div>
-                <div className="border rounded-lg p-4 bg-white">
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                <div className="border rounded-lg p-4 bg-background dark:bg-card">
+                  <h4 className="font-medium mb-3 flex items-center gap-2 text-foreground">
                     <Sparkles className="h-5 w-5 text-purple-500" /> Recommendations
                   </h4>
                   <ul className="space-y-3">
                     {aiAnalysis.recommendations?.map((rec: string, i: number) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="bg-blue-100 text-blue-800 rounded-full p-1 flex items-center justify-center">
+                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full p-1 flex items-center justify-center">
                           <ChevronDown className="h-3 w-3" />
                         </span>
-                        <span className="text-sm">{rec}</span>
+                        <span className="text-sm text-foreground">{rec}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 {aiAnalysis.suggestedOrder?.length > 0 && (
-                  <div className="border rounded-lg p-4 bg-white">
-                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <div className="border rounded-lg p-4 bg-background dark:bg-card">
+                    <h4 className="font-medium mb-3 flex items-center gap-2 text-foreground">
                       <Package className="h-5 w-5 text-green-500" /> Suggested Order
                     </h4>
                     <div className="border rounded-md overflow-hidden">
                       <Table>
-                        <TableHeader className="bg-gray-50">
+                        <TableHeader className="bg-muted">
                           <TableRow>
-                            <TableHead>Product</TableHead>
-                            <TableHead>SKU</TableHead>
-                            <TableHead className="text-right">Current Stock</TableHead>
-                            <TableHead className="text-right">Suggested Qty</TableHead>
-                            <TableHead>Reason</TableHead>
+                            <TableHead className="text-foreground">Product</TableHead>
+                            <TableHead className="text-foreground">SKU</TableHead>
+                            <TableHead className="text-right text-foreground">Current Stock</TableHead>
+                            <TableHead className="text-right text-foreground">Suggested Qty</TableHead>
+                            <TableHead className="text-foreground">Reason</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -556,12 +560,14 @@ export default function InventoryPage() {
                             const product = inventoryItems.find(p => p.id === item.sku);
                             return (
                               <TableRow key={item.sku}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell>{item.sku}</TableCell>
-                                <TableCell className="text-right">{product?.stock || 0}</TableCell>
-                                <TableCell className="text-right">{item.quantity}</TableCell>
+                                <TableCell className="text-foreground">{item.name}</TableCell>
+                                <TableCell className="text-foreground">{item.sku}</TableCell>
+                                <TableCell className="text-right text-foreground">{product?.stock || 0}</TableCell>
+                                <TableCell className="text-right text-foreground">{item.quantity}</TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="text-xs">{item.reason || "Restock needed"}</Badge>
+                                  <Badge variant="outline" className="text-xs text-foreground">
+                                    {item.reason || "Restock needed"}
+                                  </Badge>
                                 </TableCell>
                               </TableRow>
                             );
@@ -571,7 +577,7 @@ export default function InventoryPage() {
                     </div>
                     <div className="flex justify-end mt-4">
                       <Button
-                        variant="outline"
+                        variant="default"
                         onClick={() => toast.success("Order Created", { description: "Suggested order created" })}
                       >
                         Create Purchase Order
@@ -582,9 +588,9 @@ export default function InventoryPage() {
               </div>
             ) : (
               <div className="text-center py-8 space-y-4">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-background dark:bg-card p-6 rounded-lg border">
                   <Sparkles className="h-10 w-10 mx-auto text-blue-500 mb-3" />
-                  <h4 className="font-medium mb-2">Gemini 2.0 Flash Analysis</h4>
+                  <h4 className="font-medium mb-2 text-foreground">Gemini 2.0 Flash Analysis</h4>
                   <p className="text-sm text-muted-foreground mb-4">Real-time inventory insights</p>
                   <Button onClick={analyzeInventory} className="gap-2">
                     <Sparkles className="h-4 w-4" /> Run AI Analysis
@@ -597,47 +603,47 @@ export default function InventoryPage() {
       </AnimatePresence>
 
       {/* Filters and Search */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm bg-background">
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2 md:col-span-2">
-              <Label>Search Products</Label>
+              <Label className="text-foreground">Search Products</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, SKU, category..."
-                  className="pl-9"
+                  className="pl-9 text-foreground"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label className="text-foreground">Category</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="text-foreground">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="structural">Structural</SelectItem>
-                  <SelectItem value="flooring">Flooring</SelectItem>
-                  <SelectItem value="wall">Wall</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                <SelectContent className="bg-background">
+                  <SelectItem value="all" className="text-foreground">All Categories</SelectItem>
+                  <SelectItem value="structural" className="text-foreground">Structural</SelectItem>
+                  <SelectItem value="flooring" className="text-foreground">Flooring</SelectItem>
+                  <SelectItem value="wall" className="text-foreground">Wall</SelectItem>
+                  <SelectItem value="custom" className="text-foreground">Custom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Stock Status</Label>
+              <Label className="text-foreground">Stock Status</Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="text-foreground">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="in_stock">In Stock</SelectItem>
-                  <SelectItem value="low_stock">Low Stock</SelectItem>
-                  <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                <SelectContent className="bg-background">
+                  <SelectItem value="all" className="text-foreground">All Statuses</SelectItem>
+                  <SelectItem value="in_stock" className="text-foreground">In Stock</SelectItem>
+                  <SelectItem value="low_stock" className="text-foreground">Low Stock</SelectItem>
+                  <SelectItem value="out_of_stock" className="text-foreground">Out of Stock</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -646,11 +652,11 @@ export default function InventoryPage() {
       </Card>
 
       {/* Inventory Table */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm bg-background">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Product Inventory</CardTitle>
+              <CardTitle className="text-foreground">Product Inventory</CardTitle>
               <CardDescription>
                 Showing {filteredItems.length} of {inventoryItems.length} products
                 {selectedCategory !== "all" && ` in ${selectedCategory}`}
@@ -671,29 +677,29 @@ export default function InventoryPage() {
         <CardContent>
           <div className="rounded-md border">
             <Table>
-              <TableHeader className="bg-gray-50">
+              <TableHeader className="bg-muted">
                 <TableRow>
-                  <TableHead className="w-[120px]">SKU</TableHead>
-                  <TableHead>Product Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Last Updated</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="w-[120px] text-foreground">SKU</TableHead>
+                  <TableHead className="text-foreground">Product Name</TableHead>
+                  <TableHead className="text-foreground">Category</TableHead>
+                  <TableHead className="text-right text-foreground">Stock</TableHead>
+                  <TableHead className="text-right text-foreground">Price</TableHead>
+                  <TableHead className="text-foreground">Status</TableHead>
+                  <TableHead className="text-right text-foreground">Last Updated</TableHead>
+                  <TableHead className="text-right text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredItems.length > 0 ? (
                   filteredItems.map(item => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{item.id}</TableCell>
-                      <TableCell>{item.name}</TableCell>
+                    <TableRow key={item.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium text-foreground">{item.id}</TableCell>
+                      <TableCell className="text-foreground">{item.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{item.category}</Badge>
+                        <Badge variant="outline" className="text-foreground">{item.category}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">{item.stock}</TableCell>
-                      <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right text-foreground">{item.stock}</TableCell>
+                      <TableCell className="text-right text-foreground">${item.price.toFixed(2)}</TableCell>
                       <TableCell>
                         <Badge
                           variant={item.status === "In Stock" ? "default" : item.status === "Low Stock" ? "secondary" : "destructive"}
@@ -715,12 +721,12 @@ export default function InventoryPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2"
+                            className="h-8 px-2 text-foreground"
                             onClick={() => handleRestock(item.id, item.lowStockThreshold * 2)}
                           >
                             Quick Restock
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-8 px-2">Edit</Button>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 text-foreground">Edit</Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -797,13 +803,13 @@ export default function InventoryPage() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
           >
-            <Card className="border-destructive bg-red-50">
+            <Card className="border-destructive bg-destructive/10">
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
-                <CardTitle className="ml-2 text-lg">Stock Alert</CardTitle>
+                <CardTitle className="ml-2 text-lg text-foreground">Stock Alert</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">
+                <p className="text-sm text-foreground">
                   You have <span className="font-semibold">{lowStockItems} low stock</span> and{" "}
                   <span className="font-semibold">{outOfStockItems} out of stock</span> items.
                 </p>
@@ -822,7 +828,7 @@ export default function InventoryPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-destructive border-destructive hover:bg-red-100"
+                    className="text-destructive border-destructive hover:bg-destructive/10"
                     onClick={() => {
                       setAiInsightOpen(true);
                       analyzeInventory();
